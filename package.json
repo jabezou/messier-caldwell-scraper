@@ -1,0 +1,25 @@
+{
+  "name": "messier-caldwell-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "scraper.ts",
+  "scripts": {
+    "start": "ts-node src/scraper.ts",
+    "tsc": "tsc --noEmit",
+    "ts-node": "ts-node"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "playwright": "^1.49.1"
+  }
+}
