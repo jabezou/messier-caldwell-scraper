@@ -20,8 +20,6 @@ export async function messier() {
   const page = await context.newPage();
 
   await page.goto(PAGE_URLS[0].url, { timeout: 20 * 10 * 1000});
-  const catalogContainer = page.locator("#post-list-container");
-  
 
   async function scrapeURL(pageUrl: string): Promise<CelestialMetaData> {
     try {
@@ -52,11 +50,10 @@ export async function messier() {
     return result as CelestialMetaData;
   }
 
-  const catalogs = await catalogContainer.locator('.hds-content-item.content-list-item-mission').all();
   const skyObjects:Partial<CatalogModel>[] = [];
   const scrapedObjects: Partial<CatalogModel>[] = await page.evaluate(() => {
     return Array.from(document.querySelectorAll('.hds-content-item.content-list-item-mission'))
-      .slice(0, 8)
+      .slice(0, 15)
       .map((ca) => {
         const caHead = ca.querySelector('.hds-a11y-heading-22')?.textContent?.trim() || '';
         const description = ca.querySelector('p')?.textContent?.trim() || '';
