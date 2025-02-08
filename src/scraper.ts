@@ -18,7 +18,6 @@ function writeFile(fileName: string, data: any) {
 
 async function scraper() {
   ensureDirectoryExists(DIRECTORY_DIST);
-  const browser = await chromium.launch({ headless: false });
   try {
     console.log('scraping...');
     const data = await messier();
@@ -29,7 +28,6 @@ async function scraper() {
     console.error(error);
   }
 
-  await browser.close();
 }
 
 scraper();
