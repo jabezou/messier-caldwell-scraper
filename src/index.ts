@@ -22,7 +22,6 @@ export async function messier() {
   await page.goto(PAGE_URLS[0].url, { timeout: 20 * 10 * 1000});
   const catalogContainer = page.locator("#post-list-container");
   
-  const catalogs = await catalogContainer.locator('.hds-content-item.content-list-item-mission').all();
 
   async function scrapeURL(pageUrl: string): Promise<CelestialMetaData> {
     try {
@@ -33,7 +32,7 @@ export async function messier() {
     } catch (error) {
       console.error(`Failed to load page: ${pageUrl}`, error);
     }
-    
+
     const dataContainer = page.locator('.grid-col-12.desktop\\:grid-col-5.padding-left-0.desktop\\:padding-left-6');
     const planetaryMetaDataTitles = {
       distance: 'DISTANCE',
@@ -53,37 +52,34 @@ export async function messier() {
     return result as CelestialMetaData;
   }
 
-  const skyObjects:Partial<CatalogModel[]> = [];
-  const scrapedObjects = await Promise.all(
-    catalogs.slice(0, 8).map(async (ca) => {
-      const caHead: string = await ca.locator('.hds-a11y-heading-22').textContent() as string;
-      const match = caHead.match(/\(([^)]+)\)/);
-      const semantic: string | null = match ? match[1] : null;
+  const catalogs = await catalogContainer.locator('.hds-content-item.content-list-item-mission').all();
+  const skyObjects:Partial<CatalogModel>[] = [];
+  const scrapedObjects: Partial<CatalogModel>[] = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll('.hds-content-item.content-list-item-mission'))
+      .slice(0, 8)
+      .map((ca) => {
+        const caHead = ca.querySelector('.hds-a11y-heading-22')?.textContent?.trim() || '';
+        const description = ca.querySelector('p')?.textContent?.trim() || '';
+        const image = ca.querySelector('img')?.getAttribute('src') || '';
+        const url = ca.querySelector('.hds-content-item-thumbnail')?.getAttribute('href') || '';
   
-      const [name, alternateName]: [string, string | null] = semantic
-        ? [semantic, caHead.replace(caHead.match(/(\([^)]+\))/)[1], '').trim()]
-        : [caHead, null];
-      
-      const [description, image, url] = await Promise.all([
-        await ca.locator('p').textContent(),
-        await ca.locator('img').getAttribute('src'),
-        await ca.locator('.hds-content-item-thumbnail').first().getAttribute('href') as string
-      ]);
-      const metaData = await scrapeURL(url);
+        const match = caHead.match(/\(([^)]+)\)/);
+        const semantic = match ? match[1] : null;
+        const [name, alternateName] = semantic
+          ? [semantic, caHead.replace(match[0], '').trim()]
+          : [caHead, null];
   
-      
-      return {
-        name,
-        alternateName,
-        description,
-        image,
-        link: url,
-        metaData,
-      };
-    })
-  );
+        return { name, alternateName, description, image, link: url, metaData: null };
+      });
+  });
   
-  skyObjects.push(...scrapedObjects);
+
+  for (const obj of scrapedObjects) {
+    if (obj.link) {
+      obj.metaData = await scrapeURL(obj.link);
+    }
+    skyObjects.push(obj);
+  }
   
   await browser.close();
   console.log('Closing browser');

@@ -11,5 +11,5 @@ export type CatalogModel = {
   description: string | null;
   image: string | null;
   link: string | null;
-  metaData: CelestialMetaData;
+  metaData: CelestialMetaData | null;
 }
